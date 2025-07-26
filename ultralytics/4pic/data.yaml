@@ -1,0 +1,13 @@
+train: ../train/images
+val: ../valid/images
+test: ../test/images
+
+nc: 1
+names: ['1']
+
+roboflow:
+  workspace: safetybelt
+  project: 1-oli7u
+  version: 3
+  license: CC BY 4.0
+  url: https://universe.roboflow.com/safetybelt/1-oli7u/dataset/3
