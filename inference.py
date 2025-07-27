@@ -49,15 +49,22 @@ if keypoints is not None:
                 cv2.circle(annotated_image, (int(left_knee[0]), int(left_knee[1])), 5, (0, 255, 0), -1)
                 cv2.circle(annotated_image, (int(right_knee[0]), int(right_knee[1])), 5, (0, 255, 0), -1)
                 
-                # 查找"offground"类别的安全带框 (类别索引为1)
+                # 查找安全带框 (offground类别索引为1, safebelt类别索引为3)
                 if belt_results.boxes is not None:
                     for box in belt_results.boxes:
                         # 获取框的类别
                         cls = int(box.cls.item())
-                        # 如果是offground类别
+                        x1, y1, x2, y2 = box.xyxy[0].tolist()
+                        
+                        # 处理offground类别 (cls=1)
                         if cls == 1:
-                            # 获取框的坐标
-                            x1, y1, x2, y2 = box.xyxy[0].tolist()
+                            # offground框 - 用蓝色标记
+                            cv2.rectangle(annotated_image, (int(x1), int(y1)), (int(x2), int(y2)), (255, 0, 0), 2)
+                            cv2.putText(annotated_image, "Off Ground", (int(x1), int(y1)-10), 
+                                      cv2.FONT_HERSHEY_SIMPLEX, 0.9, (255, 0, 0), 2)
+                        
+                        # 处理safebelt类别 (cls=3)
+                        elif cls == 3:
                             # 计算框的中心点y坐标
                             box_center_y = (y1 + y2) / 2
                             
@@ -72,7 +79,25 @@ if keypoints is not None:
                                 cv2.rectangle(annotated_image, (int(x1), int(y1)), (int(x2), int(y2)), (0, 255, 0), 2)
                                 cv2.putText(annotated_image, "Safe Belt", (int(x1), int(y1)-10), 
                                           cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 0), 2)
-
+            else:
+                # 如果没有足够的关键点可见度，则默认标记所有安全带框
+                if belt_results.boxes is not None:
+                    for box in belt_results.boxes:
+                        cls = int(box.cls.item())
+                        x1, y1, x2, y2 = box.xyxy[0].tolist()
+                        
+                        # 处理offground类别 (cls=1)
+                        if cls == 1:
+                            cv2.rectangle(annotated_image, (int(x1), int(y1)), (int(x2), int(y2)), (255, 0, 0), 2)
+                            cv2.putText(annotated_image, "Off Ground", (int(x1), int(y1)-10), 
+                                      cv2.FONT_HERSHEY_SIMPLEX, 0.9, (255, 0, 0), 2)
+                        
+                        # 处理safebelt类别 (cls=3)
+                        elif cls == 3:
+                            # 默认标记为需要检查
+                            cv2.rectangle(annotated_image, (int(x1), int(y1)), (int(x2), int(y2)), (255, 165, 0), 2)
+                            cv2.putText(annotated_image, "Belt Detected", (int(x1), int(y1)-10), 
+                                      cv2.FONT_HERSHEY_SIMPLEX, 0.9, (255, 165, 0), 2)
 # 转换为RGB格式
 im_rgb = Image.fromarray(annotated_image[..., ::-1])  # RGB-order PIL image
 
