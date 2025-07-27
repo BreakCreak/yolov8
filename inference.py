@@ -31,8 +31,67 @@ original_image = cv2.imread(source)
 # 绘制检测结果
 annotated_image = belt_results.plot()
 
-# 如果有关键点数据，则进行安全带佩戴规范检测
-if keypoints is not None:
+# 计算两个边界框的交并比(IOU)
+def calculate_iou(box1, box2):
+    # box格式: [x1, y1, x2, y2]
+    x1 = max(box1[0], box2[0])
+    y1 = max(box1[1], box2[1])
+    x2 = min(box1[2], box2[2])
+    y2 = min(box1[3], box2[3])
+    
+    # 计算交集面积
+    intersection_area = max(0, x2 - x1) * max(0, y2 - y1)
+    
+    # 计算两个框的面积
+    box1_area = (box1[2] - box1[0]) * (box1[3] - box1[1])
+    box2_area = (box2[2] - box2[0]) * (box2[3] - box2[1])
+    
+    # 计算IOU
+    iou = intersection_area / (box1_area + box2_area - intersection_area)
+    return iou
+
+# 查找offground和safebelt框
+offground_boxes = []
+safebelt_boxes = []
+
+if belt_results.boxes is not None:
+    for box in belt_results.boxes:
+        cls = int(box.cls.item())
+        box_coords = box.xyxy[0].tolist()
+        
+        # 收集offground类别 (cls=1)
+        if cls == 1:
+            offground_boxes.append(box_coords)
+        # 收集safebelt类别 (cls=3)
+        elif cls == 3:
+            safebelt_boxes.append(box_coords)
+
+# 处理offground和safebelt的匹配
+matched_pairs = []
+for offground_box in offground_boxes:
+    for safebelt_box in safebelt_boxes:
+        # 计算重叠区域(IOU)
+        iou = calculate_iou(offground_box, safebelt_box)
+        # 如果重叠区域大于60%，则认为是一对匹配的框
+        if iou > 0.6:
+            matched_pairs.append((offground_box, safebelt_box))
+
+# 绘制offground框
+for offground_box in offground_boxes:
+    x1, y1, x2, y2 = offground_box
+    cv2.rectangle(annotated_image, (int(x1), int(y1)), (int(x2), int(y2)), (255, 0, 0), 2)
+    cv2.putText(annotated_image, "Off Ground", (int(x1), int(y1)-10), 
+                cv2.FONT_HERSHEY_SIMPLEX, 0.9, (255, 0, 0), 2)
+
+# 绘制safebelt框
+for safebelt_box in safebelt_boxes:
+    x1, y1, x2, y2 = safebelt_box
+    cv2.rectangle(annotated_image, (int(x1), int(y1)), (int(x2), int(y2)), (255, 255, 0), 2)
+    cv2.putText(annotated_image, "Safe Belt", (int(x1), int(y1)-10), 
+                cv2.FONT_HERSHEY_SIMPLEX, 0.9, (255, 255, 0), 2)
+
+# 如果有关键点数据且存在匹配的框对，则进行安全带佩戴规范检测
+if keypoints is not None and matched_pairs:
     for i, kp in enumerate(keypoints):
         # 每个人的关键点
         if kp.shape[0] >= 17:  # 确保关键点数量足够
@@ -49,55 +108,32 @@ if keypoints is not None:
                 cv2.circle(annotated_image, (int(left_knee[0]), int(left_knee[1])), 5, (0, 255, 0), -1)
                 cv2.circle(annotated_image, (int(right_knee[0]), int(right_knee[1])), 5, (0, 255, 0), -1)
                 
-                # 查找安全带框 (offground类别索引为1, safebelt类别索引为3)
-                if belt_results.boxes is not None:
-                    for box in belt_results.boxes:
-                        # 获取框的类别
-                        cls = int(box.cls.item())
-                        x1, y1, x2, y2 = box.xyxy[0].tolist()
-                        
-                        # 处理offground类别 (cls=1)
-                        if cls == 1:
-                            # offground框 - 用蓝色标记
-                            cv2.rectangle(annotated_image, (int(x1), int(y1)), (int(x2), int(y2)), (255, 0, 0), 2)
-                            cv2.putText(annotated_image, "Off Ground", (int(x1), int(y1)-10), 
-                                      cv2.FONT_HERSHEY_SIMPLEX, 0.9, (255, 0, 0), 2)
-                        
-                        # 处理safebelt类别 (cls=3)
-                        elif cls == 3:
-                            # 计算框的中心点y坐标
-                            box_center_y = (y1 + y2) / 2
-                            
-                            # 判断安全带位置是否在膝盖以下
-                            if box_center_y > knee_y:
-                                # 安全带佩戴不规范 - 在膝盖以下
-                                cv2.rectangle(annotated_image, (int(x1), int(y1)), (int(x2), int(y2)), (0, 0, 255), 2)
-                                cv2.putText(annotated_image, "Unsafe Belt", (int(x1), int(y1)-10), 
-                                          cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 0, 255), 2)
-                            else:
-                                # 安全带佩戴规范 - 在膝盖以上
-                                cv2.rectangle(annotated_image, (int(x1), int(y1)), (int(x2), int(y2)), (0, 255, 0), 2)
-                                cv2.putText(annotated_image, "Safe Belt", (int(x1), int(y1)-10), 
-                                          cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 0), 2)
+                # 对每对匹配的offground和safebelt框进行处理
+                for offground_box, safebelt_box in matched_pairs:
+                    x1, y1, x2, y2 = safebelt_box
+                    # 计算安全带框的中心点y坐标
+                    box_center_y = (y1 + y2) / 2
+                    
+                    # 判断安全带位置是否在膝盖以下
+                    if box_center_y > knee_y:
+                        # 安全带佩戴不规范 - 在膝盖以下
+                        cv2.rectangle(annotated_image, (int(x1), int(y1)), (int(x2), int(y2)), (0, 0, 255), 2)
+                        cv2.putText(annotated_image, "Unsafe Belt", (int(x1), int(y1)-10), 
+                                  cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 0, 255), 2)
+                    else:
+                        # 安全带佩戴规范 - 在膝盖以上
+                        cv2.rectangle(annotated_image, (int(x1), int(y1)), (int(x2), int(y2)), (0, 255, 0), 2)
+                        cv2.putText(annotated_image, "Safe Belt", (int(x1), int(y1)-10), 
+                                  cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 0), 2)
             else:
-                # 如果没有足够的关键点可见度，则默认标记所有安全带框
-                if belt_results.boxes is not None:
-                    for box in belt_results.boxes:
-                        cls = int(box.cls.item())
-                        x1, y1, x2, y2 = box.xyxy[0].tolist()
-                        
-                        # 处理offground类别 (cls=1)
-                        if cls == 1:
-                            cv2.rectangle(annotated_image, (int(x1), int(y1)), (int(x2), int(y2)), (255, 0, 0), 2)
-                            cv2.putText(annotated_image, "Off Ground", (int(x1), int(y1)-10), 
-                                      cv2.FONT_HERSHEY_SIMPLEX, 0.9, (255, 0, 0), 2)
-                        
-                        # 处理safebelt类别 (cls=3)
-                        elif cls == 3:
-                            # 默认标记为需要检查
-                            cv2.rectangle(annotated_image, (int(x1), int(y1)), (int(x2), int(y2)), (255, 165, 0), 2)
-                            cv2.putText(annotated_image, "Belt Detected", (int(x1), int(y1)-10), 
-                                      cv2.FONT_HERSHEY_SIMPLEX, 0.9, (255, 165, 0), 2)
+                # 如果没有足够的关键点可见度，则默认标记所有匹配的安全带框
+                for offground_box, safebelt_box in matched_pairs:
+                    x1, y1, x2, y2 = safebelt_box
+                    # 默认标记为需要检查
+                    cv2.rectangle(annotated_image, (int(x1), int(y1)), (int(x2), int(y2)), (255, 165, 0), 2)
+                    cv2.putText(annotated_image, "Belt Detected", (int(x1), int(y1)-10), 
+                              cv2.FONT_HERSHEY_SIMPLEX, 0.9, (255, 165, 0), 2)
+
 # 转换为RGB格式
 im_rgb = Image.fromarray(annotated_image[..., ::-1])  # RGB-order PIL image
 
