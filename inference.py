@@ -79,5 +79,5 @@ im_rgb = Image.fromarray(annotated_image[..., ::-1])  # RGB-order PIL image
 # Show results to screen (in supported environments)
 im_rgb.show()
 
-# Save results to disk
-im_rgb.save(filename="results_with_belt_check.jpg")
+# 修复保存图像的代码，移除错误的参数名filename
+im_rgb.save("results_with_belt_check.jpg")
