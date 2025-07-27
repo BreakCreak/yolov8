@@ -76,7 +76,7 @@ for offground_box in offground_boxes:
         # 计算重叠区域(IOU)
         iou = calculate_iou(offground_box, safebelt_box)
         # 如果重叠区域大于60%，则认为是一对匹配的框
-        if iou > 0.6:
+        if iou > 0.4:
             matched_pairs.append((offground_box, safebelt_box))
 
 # 绘制offground框
