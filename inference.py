@@ -10,7 +10,8 @@ model = YOLO("./BeltDetection.pt")
 pose_model = YOLO("yolov8n-pose.pt")
 
 # Define path to the image file
-source = "inference.jpg"
+name = "test2"
+source =name+".jpg"
 
 # Run inference on the source
 results = model(source)  # list of Results objects
@@ -105,4 +106,4 @@ im_rgb = Image.fromarray(annotated_image[..., ::-1])  # RGB-order PIL image
 im_rgb.show()
 
 # 修复保存图像的代码，移除错误的参数名filename
-im_rgb.save("results_with_belt_check.jpg")
+im_rgb.save(name+"_results_with_belt_check.jpg")
