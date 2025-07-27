@@ -80,18 +80,6 @@ for offground_box in offground_boxes:
             matched_pairs.append((offground_box, safebelt_box))
 
 # 绘制offground框
-for offground_box in offground_boxes:
-    x1, y1, x2, y2 = offground_box
-    cv2.rectangle(annotated_image, (int(x1), int(y1)), (int(x2), int(y2)), (255, 0, 0), 2)
-    cv2.putText(annotated_image, "Off Ground", (int(x1), int(y1) - 10),
-                cv2.FONT_HERSHEY_SIMPLEX, 0.9, (255, 0, 0), 2)
-
-# 绘制safebelt框
-for safebelt_box in safebelt_boxes:
-    x1, y1, x2, y2 = safebelt_box
-    cv2.rectangle(annotated_image, (int(x1), int(y1)), (int(x2), int(y2)), (255, 255, 0), 2)
-    cv2.putText(annotated_image, "Safe Belt", (int(x1), int(y1) - 10),
-                cv2.FONT_HERSHEY_SIMPLEX, 0.9, (255, 255, 0), 2)
 
 # 如果有关键点数据且存在匹配的框对，则进行安全带佩戴规范检测
 if keypoints is not None and matched_pairs:
@@ -105,7 +93,7 @@ if keypoints is not None and matched_pairs:
             # 检查关键点的可见性
             if left_knee[2] > 0.5 and right_knee[2] > 0.5:
                 # 计算膝盖的平均y坐标
-                knee_y = (left_knee[1] + right_knee[1]) / 2
+                knee_y = min(left_knee[1] + right_knee[1])
 
                 # 在图像上绘制膝盖位置（用于调试）
                 cv2.circle(annotated_image, (int(left_knee[0]), int(left_knee[1])), 5, (0, 255, 0), -1)
@@ -115,7 +103,7 @@ if keypoints is not None and matched_pairs:
                 for offground_box, safebelt_box in matched_pairs:
                     x1, y1, x2, y2 = safebelt_box
                     # 计算安全带框的中心点y坐标
-                    box_center_y = (y1 + y2) / 2
+                    box_center_y = y2
 
                     # 判断安全带位置是否在膝盖以下
                     if box_center_y > knee_y:
