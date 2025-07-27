@@ -93,7 +93,7 @@ if keypoints is not None and matched_pairs:
             # 检查关键点的可见性
             if left_knee[2] > 0.5 and right_knee[2] > 0.5:
                 # 计算膝盖的平均y坐标
-                knee_y = min(left_knee[1] + right_knee[1])
+                knee_y = min(left_knee[1], right_knee[1])
 
                 # 在图像上绘制膝盖位置（用于调试）
                 cv2.circle(annotated_image, (int(left_knee[0]), int(left_knee[1])), 5, (0, 255, 0), -1)
