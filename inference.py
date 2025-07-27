@@ -102,8 +102,8 @@ if keypoints is not None and matched_pairs:
             
             # 检查关键点的可见性
             if left_knee[2] > 0.5 and right_knee[2] > 0.5:
-                # 计算膝盖的平均y坐标
-                knee_y = (left_knee[1] + right_knee[1]) / 2
+                # 计算膝盖的最高点y坐标（较小的y值）
+                knee_y = min(left_knee[1], right_knee[1])
                 
                 # 在图像上绘制膝盖位置（用于调试）
                 cv2.circle(annotated_image, (int(left_knee[0]), int(left_knee[1])), 5, (0, 255, 0), -1)
@@ -112,17 +112,17 @@ if keypoints is not None and matched_pairs:
                 # 对每对匹配的offground和safebelt框进行处理
                 for offground_box, safebelt_box in matched_pairs:
                     x1, y1, x2, y2 = safebelt_box
-                    # 计算安全带框的中心点y坐标
-                    box_center_y = (y1 + y2) / 2
+                    # 使用安全带框的最低点y坐标
+                    belt_bottom_y = y2
                     
-                    # 判断安全带位置是否在膝盖以下
-                    if box_center_y > knee_y:
-                        # 安全带佩戴不规范 - 在膝盖以下
+                    # 判断安全带位置是否在膝盖以下（最低点的安全带位置和最高点的膝盖位置比较）
+                    if belt_bottom_y > knee_y:
+                        # 安全带佩戴不规范 - 安全带位置低于膝盖位置
                         cv2.rectangle(annotated_image, (int(x1), int(y1)), (int(x2), int(y2)), (0, 0, 255), 2)
                         cv2.putText(annotated_image, "Unsafe Belt", (int(x1), int(y1)-10), 
                                   cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 0, 255), 2)
                     else:
-                        # 安全带佩戴规范 - 在膝盖以上
+                        # 安全带佩戴规范 - 安全带位置高于膝盖位置
                         cv2.rectangle(annotated_image, (int(x1), int(y1)), (int(x2), int(y2)), (0, 255, 0), 2)
                         cv2.putText(annotated_image, "Safe Belt", (int(x1), int(y1)-10), 
                                   cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 0), 2)
