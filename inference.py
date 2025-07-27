@@ -91,8 +91,8 @@ if offground_boxes:
         # 如果在裁剪图像中未检测到安全带
         if not cropped_belt_boxes:
             # 在原图上标记未佩戴安全带
-            cv2.rectangle(annotated_image, (x1, y1), (x2, y2), (0, 0, 255), 2)
-            cv2.putText(annotated_image, "No Belt Detected", (x1, y1-10),
+            cv2.rectangle(original_image, (x1, y1), (x2, y2), (0, 0, 255), 2)
+            cv2.putText(original_image, "No Belt Detected", (x1, y1-10),
                        cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 0, 255), 2)
         else:
             # 如果检测到安全带，则进行关键点检测判断是否规范佩戴
@@ -117,8 +117,8 @@ if offground_boxes:
                                 knee_y = min(left_knee[1], right_knee[1])
 
                                 # 在图像上绘制膝盖位置（用于调试）
-                                cv2.circle(annotated_image, (int(left_knee[0]), int(left_knee[1])), 5, (0, 255, 0), -1)
-                                cv2.circle(annotated_image, (int(right_knee[0]), int(right_knee[1])), 5, (0, 255, 0), -1)
+                                cv2.circle(original_image, (int(left_knee[0]), int(left_knee[1])), 5, (0, 255, 0), -1)
+                                cv2.circle(original_image, (int(right_knee[0]), int(right_knee[1])), 5, (0, 255, 0), -1)
 
                                 # 对裁剪区域中的每个安全带检测框进行处理
                                 for belt_box in cropped_belt_boxes:
@@ -135,13 +135,13 @@ if offground_boxes:
                                     # 判断安全带位置是否在膝盖以下（最低点的安全带位置和最高点的膝盖位置比较）
                                     if belt_bottom_y > knee_y:
                                         # 安全带佩戴不规范 - 安全带位置低于膝盖位置
-                                        cv2.rectangle(annotated_image, (global_belt_x1, global_belt_y1), (global_belt_x2, global_belt_y2), (0, 0, 255), 2)
-                                        cv2.putText(annotated_image, "Unsafe Belt", (global_belt_x1, global_belt_y1-10),
+                                        cv2.rectangle(original_image, (global_belt_x1, global_belt_y1), (global_belt_x2, global_belt_y2), (0, 0, 255), 2)
+                                        cv2.putText(original_image, "Unsafe Belt", (global_belt_x1, global_belt_y1-10),
                                                   cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 0, 255), 2)
                                     else:
                                         # 安全带佩戴规范 - 安全带位置高于膝盖位置
-                                        cv2.rectangle(annotated_image, (global_belt_x1, global_belt_y1), (global_belt_x2, global_belt_y2), (0, 255, 0), 2)
-                                        cv2.putText(annotated_image, "Safe Belt", (global_belt_x1, global_belt_y1-10),
+                                        cv2.rectangle(original_image, (global_belt_x1, global_belt_y1), (global_belt_x2, global_belt_y2), (0, 255, 0), 2)
+                                        cv2.putText(original_image, "Safe Belt", (global_belt_x1, global_belt_y1-10),
                                                   cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 0), 2)
                             else:
                                 # 如果没有足够的关键点可见度，则默认标记检测到的安全带框
@@ -152,8 +152,8 @@ if offground_boxes:
                                     global_belt_x2 = x1 + int(belt_x2)
                                     global_belt_y2 = y1 + int(belt_y2)
                                     # 默认标记为需要检查
-                                    cv2.rectangle(annotated_image, (global_belt_x1, global_belt_y1), (global_belt_x2, global_belt_y2), (255, 165, 0), 2)
-                                    cv2.putText(annotated_image, "Belt Detected", (global_belt_x1, global_belt_y1-10),
+                                    cv2.rectangle(original_image, (global_belt_x1, global_belt_y1), (global_belt_x2, global_belt_y2), (255, 165, 0), 2)
+                                    cv2.putText(original_image, "Belt Detected", (global_belt_x1, global_belt_y1-10),
                                               cv2.FONT_HERSHEY_SIMPLEX, 0.9, (255, 165, 0), 2)
                 else:
                     # 如果姿态估计没有检测框，仍然处理安全带框
@@ -164,8 +164,8 @@ if offground_boxes:
                         global_belt_x2 = x1 + int(belt_x2)
                         global_belt_y2 = y1 + int(belt_y2)
                         # 默认标记为需要检查
-                        cv2.rectangle(annotated_image, (global_belt_x1, global_belt_y1), (global_belt_x2, global_belt_y2), (255, 165, 0), 2)
-                        cv2.putText(annotated_image, "Belt Detected", (global_belt_x1, global_belt_y1-10),
+                        cv2.rectangle(original_image, (global_belt_x1, global_belt_y1), (global_belt_x2, global_belt_y2), (255, 165, 0), 2)
+                        cv2.putText(original_image, "Belt Detected", (global_belt_x1, global_belt_y1-10),
                                   cv2.FONT_HERSHEY_SIMPLEX, 0.9, (255, 165, 0), 2)
 
 # 转换为RGB格式
