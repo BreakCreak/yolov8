@@ -108,12 +108,12 @@ if keypoints is not None and matched_pairs:
                     # 判断安全带位置是否在膝盖以下
                     if box_center_y > knee_y:
                         # 安全带佩戴不规范 - 在膝盖以下
-                        cv2.rectangle(annotated_image, (int(x1), int(y1)), (int(x2), int(knee_y)), (0, 0, 255), 2)
+                        cv2.rectangle(annotated_image, (int(x1), int(y1)), (int(x2), int(knee_y)), (0, 0, 255), 5)
                         cv2.putText(annotated_image, "Unsafe Belt", (int(x1), int(y1) - 10),
                                     cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 0, 255), 2)
                     else:
                         # 安全带佩戴规范 - 在膝盖以上
-                        cv2.rectangle(annotated_image, (int(x1), int(y1)), (int(x2), int(knee_y)), (0, 255, 0), 2)
+                        cv2.rectangle(annotated_image, (int(x1), int(y1)), (int(x2), int(knee_y)), (0, 255, 0), 5)
                         cv2.putText(annotated_image, "Safe Belt", (int(x1), int(y1) - 10),
                                     cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 0), 2)
             else:
