@@ -2,7 +2,8 @@ from PIL import Image
 from ultralytics import YOLO
 
 # Load a pretrained YOLO11n model
-model = YOLO("./BeltdDetection.pt")
+
+model = YOLO("./BeltDetection.pt")
 
 # Define path to the image file
 source = "inference.jpg"
