@@ -10,7 +10,7 @@ model = YOLO("./BeltDetection.pt")
 pose_model = YOLO("yolov8n-pose.pt")
 
 # Define path to the image file
-name = "test1"
+name = "test2"
 source = name + ".jpg"
 
 # Run inference on the source
