@@ -10,7 +10,7 @@ model = YOLO("./BeltDetection.pt")
 pose_model = YOLO("yolov8n-pose.pt")
 
 # Define path to the video file
-name = "test2"
+name = "test1"
 source = name + ".mp4"  # Changed from .jpg to .mp4
 
 # Open video file
@@ -120,14 +120,20 @@ while True:
                         # 计算安全带框的中心点y坐标
                         box_center_y = y2
 
+                        # 获取人物总高度（从offground框计算）
+                        person_height = offground_box[3] - offground_box[1]
+                        # 计算10%的人物高度作为容忍度
+                        tolerance = person_height * 0.1
+
                         # 判断安全带位置是否在膝盖以下
-                        if box_center_y > knee_y:
-                            # 安全带佩戴不规范 - 在膝盖以下
+                        # 修改逻辑：增加容忍度，如果安全带在膝盖以下但不超过10%人物高度，也认为是合理的
+                        if box_center_y > knee_y + tolerance:
+                            # 安全带佩戴不规范 - 在膝盖以下超过容忍度
                             cv2.rectangle(annotated_image, (int(x1), int(y1)), (int(x2), int(knee_y)), (0, 0, 255), 5)
                             cv2.putText(annotated_image, "Unsafe Belt", (int(x1), int(y1) - 10),
                                         cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 0, 255), 2)
                         else:
-                            # 安全带佩戴规范 - 在膝盖以上
+                            # 安全带佩戴规范 - 在膝盖以上或在膝盖以下但在容忍度范围内
                             cv2.rectangle(annotated_image, (int(x1), int(y1)), (int(x2), int(knee_y)), (0, 255, 0), 5)
                             cv2.putText(annotated_image, "Safe Belt", (int(x1), int(y1) - 10),
                                         cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 0), 2)
