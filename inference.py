@@ -1,7 +1,6 @@
-from PIL import Image
-from ultralytics import YOLO
-import numpy as np
 import cv2
+
+from ultralytics import YOLO
 
 # Load a pretrained YOLO11n model
 model = YOLO("./BeltDetection.pt")
@@ -25,8 +24,7 @@ width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
 height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 
 # Create VideoWriter object to save the output video
-out = cv2.VideoWriter(name + "_results_with_belt_check.mp4", 
-                      cv2.VideoWriter_fourcc(*'mp4v'), fps, (width, height))
+out = cv2.VideoWriter(name + "_results_with_belt_check.mp4", cv2.VideoWriter_fourcc(*"mp4v"), fps, (width, height))
 
 # Process video frame by frame
 frame_count = 0
@@ -130,25 +128,46 @@ while True:
                         if box_center_y > knee_y + tolerance:
                             # 安全带佩戴不规范 - 在膝盖以下超过容忍度
                             cv2.rectangle(annotated_image, (int(x1), int(y1)), (int(x2), int(knee_y)), (0, 0, 255), 5)
-                            cv2.putText(annotated_image, "Unsafe Belt", (int(x1), int(y1) - 10),
-                                        cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 0, 255), 2)
+                            cv2.putText(
+                                annotated_image,
+                                "Unsafe Belt",
+                                (int(x1), int(y1) - 10),
+                                cv2.FONT_HERSHEY_SIMPLEX,
+                                0.9,
+                                (0, 0, 255),
+                                2,
+                            )
                         else:
                             # 安全带佩戴规范 - 在膝盖以上或在膝盖以下但在容忍度范围内
                             cv2.rectangle(annotated_image, (int(x1), int(y1)), (int(x2), int(knee_y)), (0, 255, 0), 5)
-                            cv2.putText(annotated_image, "Safe Belt", (int(x1), int(y1) - 10),
-                                        cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 0), 2)
+                            cv2.putText(
+                                annotated_image,
+                                "Safe Belt",
+                                (int(x1), int(y1) - 10),
+                                cv2.FONT_HERSHEY_SIMPLEX,
+                                0.9,
+                                (0, 255, 0),
+                                2,
+                            )
                 else:
                     # 如果没有足够的关键点可见度，则默认标记所有匹配的安全带框
                     for offground_box, safebelt_box in matched_pairs:
                         x1, y1, x2, y2 = safebelt_box
                         # 默认标记为需要检查
                         cv2.rectangle(annotated_image, (int(x1), int(y1)), (int(x2), int(y2)), (255, 165, 0), 2)
-                        cv2.putText(annotated_image, "Belt Detected", (int(x1), int(y1) - 10),
-                                    cv2.FONT_HERSHEY_SIMPLEX, 0.9, (255, 165, 0), 2)
+                        cv2.putText(
+                            annotated_image,
+                            "Belt Detected",
+                            (int(x1), int(y1) - 10),
+                            cv2.FONT_HERSHEY_SIMPLEX,
+                            0.9,
+                            (255, 165, 0),
+                            2,
+                        )
 
     # Write the frame to output video
     out.write(annotated_image)
-    
+
     frame_count += 1
     print(f"Processed frame {frame_count}")
 
