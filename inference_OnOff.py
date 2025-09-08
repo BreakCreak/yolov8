@@ -1,4 +1,5 @@
 from PIL import Image
+
 from ultralytics import YOLO
 
 # Load a pretrained YOLO11n model
