@@ -1,5 +1,5 @@
 from ultralytics import YOLO
 
-model = YOLO("./BeltDetection.pt")
+model = YOLO("./yolov8n-pose.pt")
 
 model.export(format="onnx")
