@@ -18,6 +18,5 @@ names:
   0: OnOff
   1: On
   2: Off
-
 # Download script/URL (optional)
 # download: https://github.com/ultralytics/assets/releases/download/v0.0.0/coco128.zip
